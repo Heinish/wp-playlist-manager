@@ -29,7 +29,7 @@
             splash.classList.add( 'hidden' );
             setTimeout( advance, getDuration( slides[ 0 ] ) );
         }
-        if ( firstImg.complete ) {
+        if ( ! firstImg || firstImg.complete ) {
             onReady();
         } else {
             firstImg.addEventListener( 'load', onReady, { once: true } );
