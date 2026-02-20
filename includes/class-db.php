@@ -57,7 +57,7 @@ class PPM_DB {
                 'duration'      => isset( $item['duration'] ) && $item['duration'] !== ''
                     ? (int) $item['duration']
                     : null,
-            ], [ '%d', '%d', '%d', '%d', '%d' ] );
+            ], [ '%d', '%d', '%d', '%d', '%s' ] );
         }
     }
 

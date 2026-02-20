@@ -32,12 +32,13 @@
         li.className = 'ppm-item';
         li.draggable = true;
         li.dataset.id = item.attachment_id;
+        const idx = document.querySelectorAll('.ppm-item').length;
         li.innerHTML = `
             <span class="ppm-drag-handle dashicons dashicons-menu" title="Drag to reorder"></span>
             <img src="${escHtml(item.thumb)}" class="ppm-thumb" alt="">
-            <input type="hidden" name="ppm_items[][attachment_id]" value="${escHtml(String(item.attachment_id))}">
-            <label>Duration (s): <input type="number" name="ppm_items[][duration]" min="1" placeholder="Global" value="${escHtml(String(item.duration))}"></label>
-            <label>Frequency: <input type="number" name="ppm_items[][frequency]" min="1" value="${escHtml(String(item.frequency))}"></label>
+            <input type="hidden" name="ppm_items[${idx}][attachment_id]" value="${escHtml(String(item.attachment_id))}">
+            <label>Duration (s): <input type="number" name="ppm_items[${idx}][duration]" min="1" placeholder="Global" value="${escHtml(String(item.duration))}"></label>
+            <label>Frequency: <input type="number" name="ppm_items[${idx}][frequency]" min="1" value="${escHtml(String(item.frequency))}"></label>
             <button type="button" class="button-link ppm-remove-item">&#10005;</button>
         `;
         bindRowEvents(li);

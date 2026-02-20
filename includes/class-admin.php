@@ -44,8 +44,8 @@ class PPM_Admin {
             </div>
 
             <ul id="ppm-items-list">
-                <?php foreach ( $items as $item ) : ?>
-                    <?php self::render_item_row( $item ); ?>
+                <?php foreach ( $items as $index => $item ) : ?>
+                    <?php self::render_item_row( $item, $index ); ?>
                 <?php endforeach; ?>
             </ul>
 
@@ -53,23 +53,23 @@ class PPM_Admin {
         <?php
     }
 
-    public static function render_item_row( array $item ): void {
+    public static function render_item_row( array $item, int $index = 0 ): void {
         $thumb = wp_get_attachment_image_url( (int) $item['attachment_id'], 'thumbnail' );
         ?>
         <li class="ppm-item" data-id="<?php echo esc_attr( $item['attachment_id'] ); ?>">
             <span class="ppm-drag-handle dashicons dashicons-menu" title="Drag to reorder"></span>
             <img src="<?php echo esc_url( $thumb ); ?>" class="ppm-thumb" alt="">
-            <input type="hidden" name="ppm_items[][attachment_id]"
+            <input type="hidden" name="ppm_items[<?php echo $index; ?>][attachment_id]"
                    value="<?php echo esc_attr( $item['attachment_id'] ); ?>">
             <label>
                 Duration (s):
-                <input type="number" name="ppm_items[][duration]" min="1"
+                <input type="number" name="ppm_items[<?php echo $index; ?>][duration]" min="1"
                        placeholder="Global"
                        value="<?php echo esc_attr( $item['duration'] ?? '' ); ?>">
             </label>
             <label>
                 Frequency:
-                <input type="number" name="ppm_items[][frequency]" min="1"
+                <input type="number" name="ppm_items[<?php echo $index; ?>][frequency]" min="1"
                        value="<?php echo esc_attr( $item['frequency'] ); ?>">
             </label>
             <button type="button" class="button-link ppm-remove-item">&#10005;</button>
@@ -89,7 +89,7 @@ class PPM_Admin {
         wp_enqueue_script(
             'ppm-admin',
             PPM_URL . 'assets/admin.js',
-            [],
+            [ 'media-editor' ],
             PPM_VERSION,
             true
         );
@@ -97,11 +97,11 @@ class PPM_Admin {
     }
 
     public static function save( int $post_id, WP_Post $post ): void {
-        if (
-            ! isset( $_POST['ppm_nonce'] ) ||
-            ! wp_verify_nonce( $_POST['ppm_nonce'], 'ppm_save' ) ||
-            defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE
-        ) {
+        if ( ! isset( $_POST['ppm_nonce'] ) || ! wp_verify_nonce( $_POST['ppm_nonce'], 'ppm_save' ) ) {
+            return;
+        }
+
+        if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) {
             return;
         }
 
@@ -110,9 +110,9 @@ class PPM_Admin {
         }
 
         update_post_meta( $post_id, '_ppm_global_duration',
-            absint( $_POST['ppm_global_duration'] ?? 10 ) );
+            max( 1, absint( $_POST['ppm_global_duration'] ?? 10 ) ) );
         update_post_meta( $post_id, '_ppm_global_frequency',
-            absint( $_POST['ppm_global_frequency'] ?? 1 ) );
+            max( 1, absint( $_POST['ppm_global_frequency'] ?? 1 ) ) );
 
         $raw_items = $_POST['ppm_items'] ?? [];
         PPM_DB::save_items( $post_id, is_array( $raw_items ) ? $raw_items : [] );
