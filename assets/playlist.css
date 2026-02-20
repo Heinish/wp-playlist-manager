@@ -1,0 +1,34 @@
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+    width: 100%; height: 100%;
+    background: #000;
+    overflow: hidden;
+}
+
+#ppm-slideshow {
+    position: relative;
+    width: 100%; height: 100vh;
+}
+
+#ppm-splash {
+    position: absolute; inset: 0;
+    background: #000;
+    z-index: 10;
+    transition: opacity 0.5s ease;
+}
+
+#ppm-splash.hidden { opacity: 0; pointer-events: none; }
+
+.ppm-slide {
+    position: absolute; inset: 0;
+    opacity: 0;
+    transition: opacity 0.8s ease;
+}
+
+.ppm-slide.active { opacity: 1; }
+
+.ppm-slide img {
+    width: 100%; height: 100%;
+    object-fit: contain;
+}
