@@ -105,6 +105,10 @@ class PPM_Admin {
             return;
         }
 
+        if ( ! current_user_can( 'edit_post', $post_id ) ) {
+            return;
+        }
+
         update_post_meta( $post_id, '_ppm_global_duration',
             absint( $_POST['ppm_global_duration'] ?? 10 ) );
         update_post_meta( $post_id, '_ppm_global_frequency',
