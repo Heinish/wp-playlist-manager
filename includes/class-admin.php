@@ -19,6 +19,8 @@ class PPM_Admin {
 
         $global_duration  = get_post_meta( $post->ID, '_ppm_global_duration', true ) ?: 10;
         $global_frequency = get_post_meta( $post->ID, '_ppm_global_frequency', true ) ?: 1;
+        $fade_duration    = get_post_meta( $post->ID, '_ppm_fade_duration', true ) ?: 0.8;
+        $fade_type        = get_post_meta( $post->ID, '_ppm_fade_type', true ) ?: 'fade';
         $items            = PPM_DB::get_items( $post->ID );
         ?>
         <div id="ppm-meta-box">
@@ -35,6 +37,21 @@ class PPM_Admin {
                     Default frequency (per 10 min):
                     <input type="number" name="ppm_global_frequency" min="1"
                            value="<?php echo esc_attr( $global_frequency ); ?>">
+                </label>
+                &nbsp;&nbsp;
+                <label>
+                    Fade duration (seconds):
+                    <input type="number" name="ppm_fade_duration" min="0" max="5" step="0.1"
+                           value="<?php echo esc_attr( $fade_duration ); ?>">
+                </label>
+                &nbsp;&nbsp;
+                <label>
+                    Transition type:
+                    <select name="ppm_fade_type">
+                        <option value="fade"      <?php selected( $fade_type, 'fade' ); ?>>Fade</option>
+                        <option value="fade-zoom" <?php selected( $fade_type, 'fade-zoom' ); ?>>Fade + Zoom</option>
+                        <option value="none"      <?php selected( $fade_type, 'none' ); ?>>None (instant)</option>
+                    </select>
                 </label>
             </div>
 
@@ -113,6 +130,13 @@ class PPM_Admin {
             max( 1, absint( $_POST['ppm_global_duration'] ?? 10 ) ) );
         update_post_meta( $post_id, '_ppm_global_frequency',
             max( 1, absint( $_POST['ppm_global_frequency'] ?? 1 ) ) );
+
+        $allowed_fade_types = [ 'fade', 'fade-zoom', 'none' ];
+        $fade_type = $_POST['ppm_fade_type'] ?? 'fade';
+        update_post_meta( $post_id, '_ppm_fade_type',
+            in_array( $fade_type, $allowed_fade_types, true ) ? $fade_type : 'fade' );
+        update_post_meta( $post_id, '_ppm_fade_duration',
+            max( 0, min( 5, (float) ( $_POST['ppm_fade_duration'] ?? 0.8 ) ) ) );
 
         $raw_items = $_POST['ppm_items'] ?? [];
         PPM_DB::save_items( $post_id, is_array( $raw_items ) ? $raw_items : [] );

@@ -3,9 +3,11 @@ defined( 'ABSPATH' ) || exit;
 
 global $post;
 $playlist_id = $post->ID;
-$sequence    = PPM_Frontend::build_sequence( $playlist_id );
-$hash        = PPM_DB::get_content_hash( $playlist_id );
-$rest_url    = rest_url( 'ppm/v1/playlist/' . $playlist_id . '/hash' );
+$sequence      = PPM_Frontend::build_sequence( $playlist_id );
+$hash          = PPM_DB::get_content_hash( $playlist_id );
+$rest_url      = rest_url( 'ppm/v1/playlist/' . $playlist_id . '/hash' );
+$fade_duration = (float) ( get_post_meta( $playlist_id, '_ppm_fade_duration', true ) ?: 0.8 );
+$fade_type     = get_post_meta( $playlist_id, '_ppm_fade_type', true ) ?: 'fade';
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -29,8 +31,10 @@ $rest_url    = rest_url( 'ppm/v1/playlist/' . $playlist_id . '/hash' );
 
 <script>
     window.PPM = {
-        hash:    <?php echo wp_json_encode( $hash ); ?>,
-        restUrl: <?php echo wp_json_encode( $rest_url ); ?>,
+        hash:         <?php echo wp_json_encode( $hash ); ?>,
+        restUrl:      <?php echo wp_json_encode( $rest_url ); ?>,
+        fadeDuration: <?php echo wp_json_encode( $fade_duration ); ?>,
+        fadeType:     <?php echo wp_json_encode( $fade_type ); ?>,
     };
 </script>
 <script src="<?php echo esc_url( PPM_URL . 'assets/playlist.js?v=' . PPM_VERSION ); ?>"></script>

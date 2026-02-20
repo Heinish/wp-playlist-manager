@@ -7,6 +7,26 @@
 
     if ( slides.length === 0 ) return;
 
+    /* ── Apply transition style ───────────────────────────────── */
+    (function applyTransition() {
+        const type = ( window.PPM && window.PPM.fadeType )     || 'fade';
+        const dur  = ( window.PPM && window.PPM.fadeDuration ) || 0.8;
+        const el   = document.createElement( 'style' );
+
+        if ( type === 'none' ) {
+            el.textContent = '.ppm-slide { transition: none; }';
+        } else if ( type === 'fade-zoom' ) {
+            el.textContent =
+                '.ppm-slide { opacity: 0; transform: scale(1.06); transition: opacity ' + dur + 's ease, transform ' + dur + 's ease; }' +
+                '.ppm-slide.active { opacity: 1; transform: scale(1); }';
+        } else {
+            // default: fade
+            el.textContent = '.ppm-slide { transition: opacity ' + dur + 's ease; }';
+        }
+
+        document.head.appendChild( el );
+    })();
+
     function showSlide( index ) {
         slides[ current ].classList.remove( 'active' );
         current = index % slides.length;

@@ -23,10 +23,11 @@ html, body {
 .ppm-slide {
     position: absolute; inset: 0;
     opacity: 0;
-    transition: opacity 0.8s ease;
+    transform: scale(1);
+    /* transition is set dynamically by playlist.js based on playlist settings */
 }
 
-.ppm-slide.active { opacity: 1; }
+.ppm-slide.active { opacity: 1; transform: scale(1); }
 
 .ppm-slide img {
     width: 100%; height: 100%;
