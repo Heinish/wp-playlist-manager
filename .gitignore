@@ -1,0 +1,16 @@
+# Zip builds
+*.zip
+
+# Docs (internal only)
+docs/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor directories
+.vscode/
+.idea/
+
+# PHP
+*.log
