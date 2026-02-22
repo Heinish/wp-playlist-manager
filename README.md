@@ -71,44 +71,6 @@ At the end of every full cycle the slideshow silently fetches a content hash fro
 
 ---
 
-## Raspberry Pi setup
-
-Point the Pi's browser (Chromium) to the playlist URL in kiosk mode:
-
-```bash
-chromium-browser --kiosk --noerrdialogs --disable-infobars https://your-site.com/playlist/your-playlist/
-```
-
----
-
-## Development
-
-Clone the repo and work directly in the `wp-playlist-manager/` folder. To build a deployable zip:
-
-```bash
-python -c "
-import zipfile, os
-src = 'wp-playlist-manager'
-dst = 'wp-playlist-manager.zip'
-include = ['wp-playlist-manager.php', 'includes', 'assets', 'templates']
-with zipfile.ZipFile(dst, 'w', zipfile.ZIP_DEFLATED) as zf:
-    for item in include:
-        full = os.path.join(src, item)
-        if os.path.isfile(full):
-            zf.write(full, 'wp-playlist-manager/' + item)
-        elif os.path.isdir(full):
-            for root, dirs, files in os.walk(full):
-                for file in files:
-                    abs_path = os.path.join(root, file)
-                    rel = os.path.relpath(abs_path, src).replace(os.sep, '/')
-                    zf.write(abs_path, 'wp-playlist-manager/' + rel)
-"
-```
-
-> **Note:** Use Python's `zipfile` module (not PowerShell `Compress-Archive`) — Python writes forward-slash paths which Linux servers require.
-
----
-
 ## License
 
 MIT
