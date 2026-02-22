@@ -73,4 +73,6 @@ At the end of every full cycle the slideshow silently fetches a content hash fro
 
 ## License
 
-MIT
+© 2026 Heinish. All rights reserved.
+
+You may use this software but may not copy, modify, distribute, or sell it without written permission from the author.
