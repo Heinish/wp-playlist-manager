@@ -28,7 +28,7 @@
             cursor: pointer; font: inherit;
         }
         #debug button:hover { background: #2a2a2a; }
-        #debug button.danger { border-color: #a00; color: #f44; }
+        #debug button.active-orient { background: #2271b1; border-color: #2271b1; color: #fff; }
         #debug .seq { color: #aaf; word-break: break-all; }
 
         /* ── Colored placeholder slides ──────────────────────────── */
@@ -46,7 +46,7 @@
         }
     </style>
 </head>
-<body>
+<body class="ppm-landscape">
 
 <!-- ═══════════════════════════════════════════════════════════════
      TEST CONFIG — edit this to try different playlists
@@ -56,12 +56,12 @@
     // Each item: { label, color, frequency, duration (null = use global) }
     var TEST_ITEMS = [
         { label: 'Image A',  color: '#c0392b', frequency: 3, duration: null },
-        { label: 'Image B',  color: '#2980b9', frequency: 1, duration: 1    },
-        { label: 'Image C',  color: '#27ae60', frequency: 1, duration: null },
+        { label: 'Image B',  color: '#2980b9', frequency: 1, duration: null    },
+        { label: 'Image C',  color: '#27ae60', frequency: 1, duration: 10 },
         { label: 'Image D',  color: '#8e44ad', frequency: 2, duration: null },
     ];
     var GLOBAL_DURATION = 5;    // seconds (default when duration is null)
-    var FADE_DURATION   = 0.8; // seconds the fade takes (try 0.3, 1.5, 2.0)
+    var FADE_DURATION   = 2; // seconds the fade takes (try 0.3, 1.5, 2.0)
     var FADE_TYPE       = 'fade'; // 'fade', 'fade-zoom', 'none'
 </script>
 <!-- ═══════════════════════════════════════════════════════════════ -->
@@ -83,6 +83,13 @@
     <hr>
     <div><span class="label">Sequence:</span><br>
         <span class="seq" id="db-seq">—</span>
+    </div>
+    <hr>
+    <hr>
+    <div><span class="label">Orientation:</span></div>
+    <div style="display:flex;gap:4px;margin-top:4px;">
+        <button style="flex:1" id="btn-landscape" onclick="setOrientation('landscape')" class="active-orient">&#9644; Horizontal</button>
+        <button style="flex:1" id="btn-portrait"  onclick="setOrientation('portrait')">&#9646; Vertical</button>
     </div>
     <hr>
     <button onclick="simulateContentChange()">Simulate content change<br><small>(triggers auto-reload in ~30s)</small></button>
@@ -232,6 +239,12 @@ function simulateContentChange() {
 
     document.getElementById('db-fade-type').textContent = FADE_TYPE;
     document.getElementById('db-fade-dur').textContent  = FADE_DURATION;
+
+    function setOrientation(o) {
+        document.body.className = 'ppm-' + o;
+        document.getElementById('btn-landscape').classList.toggle('active-orient', o === 'landscape');
+        document.getElementById('btn-portrait').classList.toggle('active-orient',  o === 'portrait');
+    }
 
     setInterval(updateDebug, 100);
 })();

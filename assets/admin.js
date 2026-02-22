@@ -12,14 +12,29 @@
         frame.on('select', function () {
             const attachments = frame.state().get('selection').toJSON();
             const list = document.getElementById('ppm-items-list');
+            const orientation = document.querySelector('input[name="ppm_orientation"]:checked');
+            const isPortrait  = orientation && orientation.value === 'portrait';
+            const reqW = isPortrait ? 1080 : 1920;
+            const reqH = isPortrait ? 1920 : 1080;
+
             attachments.forEach(function (att) {
+                const w = att.width, h = att.height;
+                if ( w && h && ( w !== reqW || h !== reqH ) ) {
+                    const ok = window.confirm(
+                        'Warning: "' + att.filename + '" is ' + w + '×' + h +
+                        ' but the playlist is set to ' + reqW + '×' + reqH +
+                        '.\n\nAdd it anyway?'
+                    );
+                    if ( !ok ) return;
+                }
                 const row = buildRow({
                     attachment_id: att.id,
                     thumb: att.sizes?.thumbnail?.url || att.url,
                     duration: '',
-                    frequency: 1,
+                    frequency: ( window.ppmData && window.ppmData.globalFrequency ) ? window.ppmData.globalFrequency : 1,
                 });
                 list.appendChild(row);
+                reindexItems();
             });
         });
 
@@ -37,8 +52,10 @@
             <span class="ppm-drag-handle dashicons dashicons-menu" title="Drag to reorder"></span>
             <img src="${escHtml(item.thumb)}" class="ppm-thumb" alt="">
             <input type="hidden" name="ppm_items[${idx}][attachment_id]" value="${escHtml(String(item.attachment_id))}">
-            <label>Duration (s): <input type="number" name="ppm_items[${idx}][duration]" min="1" placeholder="Global" value="${escHtml(String(item.duration))}"></label>
-            <label>Frequency: <input type="number" name="ppm_items[${idx}][frequency]" min="1" value="${escHtml(String(item.frequency))}"></label>
+            <div class="ppm-item-fields">
+                <label>Duration (s)<input type="number" name="ppm_items[${idx}][duration]" min="1" placeholder="Global" value="${escHtml(String(item.duration))}"></label>
+                <label>Frequency<input type="number" name="ppm_items[${idx}][frequency]" min="1" value="${escHtml(String(item.frequency))}"></label>
+            </div>
             <button type="button" class="button-link ppm-remove-item">&#10005;</button>
         `;
         bindRowEvents(li);
@@ -57,6 +74,7 @@
     function bindRowEvents(li) {
         li.querySelector('.ppm-remove-item').addEventListener('click', function () {
             li.remove();
+            reindexItems();
         });
         bindDragEvents(li);
     }
@@ -107,8 +125,63 @@
                 } else {
                     list.insertBefore(dragSrc, li);
                 }
+                reindexItems();
             }
             li.classList.remove('ppm-drag-over');
         });
     }
+
+    /* ── Reindex input names after reorder ────────────────────── */
+    function reindexItems() {
+        document.querySelectorAll('#ppm-items-list .ppm-item').forEach(function (li, idx) {
+            li.querySelectorAll('input').forEach(function (input) {
+                if (input.name) {
+                    input.name = input.name.replace(/ppm_items\[\d+\]/, 'ppm_items[' + idx + ']');
+                }
+            });
+        });
+    }
+
+    /* ── Orientation toggle ───────────────────────────────────── */
+    document.querySelectorAll('.ppm-orientation-toggle input[type=radio]').forEach(function (radio) {
+        radio.addEventListener('change', function () {
+            document.querySelectorAll('.ppm-orient-btn').forEach(function (btn) {
+                btn.classList.remove('active');
+            });
+            radio.closest('.ppm-orient-btn').classList.add('active');
+        });
+    });
+
+    /* ── Force Reload ─────────────────────────────────────────── */
+    const forceBtn = document.getElementById('ppm-force-reload');
+    if ( forceBtn ) {
+        forceBtn.addEventListener('click', function () {
+            const postId = forceBtn.dataset.postId;
+            forceBtn.disabled = true;
+            forceBtn.textContent = 'Sending…';
+            fetch( ppmData.ajaxUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: 'action=ppm_force_reload&post_id=' + postId + '&nonce=' + ppmData.forceNonce,
+            })
+            .then( function (r) { return r.json(); } )
+            .then( function (data) {
+                if ( data.success ) {
+                    forceBtn.textContent = '✓ Reload triggered';
+                    setTimeout( function () {
+                        forceBtn.disabled = false;
+                        forceBtn.textContent = '↻ Force Reload';
+                    }, 3000 );
+                } else {
+                    forceBtn.textContent = '✗ Failed';
+                    forceBtn.disabled = false;
+                }
+            })
+            .catch( function () {
+                forceBtn.textContent = '✗ Error';
+                forceBtn.disabled = false;
+            });
+        });
+    }
+
 })();

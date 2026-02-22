@@ -26,6 +26,9 @@ class PPM_Rest {
 
         return new WP_REST_Response( [
             'hash' => PPM_DB::get_content_hash( $playlist_id ),
-        ], 200 );
+        ], 200, [
+            'Cache-Control' => 'no-store, no-cache, must-revalidate',
+            'Pragma'        => 'no-cache',
+        ] );
     }
 }

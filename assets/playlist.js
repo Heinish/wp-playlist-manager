@@ -40,6 +40,9 @@
     function advance() {
         const nextIndex = ( current + 1 ) % slides.length;
         showSlide( nextIndex );
+        if ( nextIndex === 0 ) {
+            checkForUpdates();
+        }
         setTimeout( advance, getDuration( slides[ current ] ) );
     }
 
@@ -62,16 +65,17 @@
     const { hash: initHash, restUrl } = window.PPM;
 
     function checkForUpdates() {
-        fetch( restUrl, { cache: 'no-store' } )
+        fetch( restUrl + '?t=' + Date.now(), { cache: 'no-store' } )
             .then( function ( r ) { return r.json(); } )
             .then( function ( data ) {
                 if ( data.hash && data.hash !== initHash ) {
-                    window.location.reload();
+                    // Navigate to a fresh URL to bypass any page cache
+                    window.location.href = window.location.pathname + '?nocache=' + Date.now();
                 }
             } )
             .catch( function () { /* ignore network errors */ } );
     }
 
-    setInterval( checkForUpdates, 30000 );
+
 
 })();

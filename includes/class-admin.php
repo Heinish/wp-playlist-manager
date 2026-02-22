@@ -17,47 +17,65 @@ class PPM_Admin {
     public static function render( WP_Post $post ): void {
         wp_nonce_field( 'ppm_save', 'ppm_nonce' );
 
-        $global_duration  = get_post_meta( $post->ID, '_ppm_global_duration', true ) ?: 10;
-        $global_frequency = get_post_meta( $post->ID, '_ppm_global_frequency', true ) ?: 1;
-        $fade_duration    = get_post_meta( $post->ID, '_ppm_fade_duration', true ) ?: 0.8;
-        $fade_type        = get_post_meta( $post->ID, '_ppm_fade_type', true ) ?: 'fade';
-        $items            = PPM_DB::get_items( $post->ID );
+        $global_duration    = get_post_meta( $post->ID, '_ppm_global_duration', true ) ?: 10;
+        $global_frequency   = get_post_meta( $post->ID, '_ppm_global_frequency', true ) ?: 1;
+        $fade_duration      = get_post_meta( $post->ID, '_ppm_fade_duration', true ) ?: 0.8;
+        $fade_type          = get_post_meta( $post->ID, '_ppm_fade_type', true ) ?: 'fade';
+        $orientation        = get_post_meta( $post->ID, '_ppm_orientation', true ) ?: 'landscape';
+        $items              = PPM_DB::get_items( $post->ID );
         ?>
         <div id="ppm-meta-box">
 
             <div class="ppm-global-settings">
-                <h4>Global Defaults</h4>
-                <label>
-                    Default slide duration (seconds):
+
+                <div class="ppm-field">
+                    <span class="ppm-field-label">Slide duration (s)</span>
                     <input type="number" name="ppm_global_duration" min="1"
                            value="<?php echo esc_attr( $global_duration ); ?>">
-                </label>
-                &nbsp;&nbsp;
-                <label>
-                    Default frequency (per 10 min):
+                </div>
+
+                <div class="ppm-field">
+                    <span class="ppm-field-label">Times per cycle</span>
                     <input type="number" name="ppm_global_frequency" min="1"
                            value="<?php echo esc_attr( $global_frequency ); ?>">
-                </label>
-                &nbsp;&nbsp;
-                <label>
-                    Fade duration (seconds):
+                </div>
+
+                <div class="ppm-field">
+                    <span class="ppm-field-label">Fade duration (s)</span>
                     <input type="number" name="ppm_fade_duration" min="0" max="5" step="0.1"
                            value="<?php echo esc_attr( $fade_duration ); ?>">
-                </label>
-                &nbsp;&nbsp;
-                <label>
-                    Transition type:
+                </div>
+
+                <div class="ppm-field">
+                    <span class="ppm-field-label">Transition</span>
                     <select name="ppm_fade_type">
                         <option value="fade"      <?php selected( $fade_type, 'fade' ); ?>>Fade</option>
                         <option value="fade-zoom" <?php selected( $fade_type, 'fade-zoom' ); ?>>Fade + Zoom</option>
-                        <option value="none"      <?php selected( $fade_type, 'none' ); ?>>None (instant)</option>
+                        <option value="none"      <?php selected( $fade_type, 'none' ); ?>>None</option>
                     </select>
-                </label>
+                </div>
+
+                <div class="ppm-field">
+                    <span class="ppm-field-label">Orientation</span>
+                    <div class="ppm-orientation-toggle">
+                        <label class="ppm-orient-btn <?php echo $orientation === 'landscape' ? 'active' : ''; ?>">
+                            <input type="radio" name="ppm_orientation" value="landscape" <?php checked( $orientation, 'landscape' ); ?> hidden>
+                            <span class="ppm-orient-icon">&#9644;</span> Horizontal
+                        </label>
+                        <label class="ppm-orient-btn <?php echo $orientation === 'portrait' ? 'active' : ''; ?>">
+                            <input type="radio" name="ppm_orientation" value="portrait" <?php checked( $orientation, 'portrait' ); ?> hidden>
+                            <span class="ppm-orient-icon">&#9646;</span> Vertical
+                        </label>
+                    </div>
+                </div>
+
             </div>
 
             <div class="ppm-items-header">
-                <h4>Images</h4>
-                <button type="button" class="button" id="ppm-add-images">Add Images</button>
+                <p class="ppm-section-title" style="margin:0">Images</p>
+                <button type="button" class="button" id="ppm-add-images">+ Add Images</button>
+                <button type="button" class="button" id="ppm-force-reload"
+                        data-post-id="<?php echo (int) $post->ID; ?>">&#8635; Force Reload</button>
             </div>
 
             <ul id="ppm-items-list">
@@ -78,17 +96,19 @@ class PPM_Admin {
             <img src="<?php echo esc_url( $thumb ); ?>" class="ppm-thumb" alt="">
             <input type="hidden" name="ppm_items[<?php echo $index; ?>][attachment_id]"
                    value="<?php echo esc_attr( $item['attachment_id'] ); ?>">
-            <label>
-                Duration (s):
-                <input type="number" name="ppm_items[<?php echo $index; ?>][duration]" min="1"
-                       placeholder="Global"
-                       value="<?php echo esc_attr( $item['duration'] ?? '' ); ?>">
-            </label>
-            <label>
-                Frequency:
-                <input type="number" name="ppm_items[<?php echo $index; ?>][frequency]" min="1"
-                       value="<?php echo esc_attr( $item['frequency'] ); ?>">
-            </label>
+            <div class="ppm-item-fields">
+                <label>
+                    Duration (s)
+                    <input type="number" name="ppm_items[<?php echo $index; ?>][duration]" min="1"
+                           placeholder="Global"
+                           value="<?php echo esc_attr( $item['duration'] ?? '' ); ?>">
+                </label>
+                <label>
+                    Frequency
+                    <input type="number" name="ppm_items[<?php echo $index; ?>][frequency]" min="1"
+                           value="<?php echo esc_attr( $item['frequency'] ); ?>">
+                </label>
+            </div>
             <button type="button" class="button-link ppm-remove-item">&#10005;</button>
         </li>
         <?php
@@ -110,6 +130,11 @@ class PPM_Admin {
             PPM_VERSION,
             true
         );
+        wp_localize_script( 'ppm-admin', 'ppmData', [
+            'globalFrequency' => (int) ( get_post_meta( $post->ID, '_ppm_global_frequency', true ) ?: 1 ),
+            'ajaxUrl'         => admin_url( 'admin-ajax.php' ),
+            'forceNonce'      => wp_create_nonce( 'ppm_force_reload' ),
+        ] );
         wp_enqueue_style( 'ppm-admin', PPM_URL . 'assets/admin.css', [], PPM_VERSION );
     }
 
@@ -138,7 +163,21 @@ class PPM_Admin {
         update_post_meta( $post_id, '_ppm_fade_duration',
             max( 0, min( 5, (float) ( $_POST['ppm_fade_duration'] ?? 0.8 ) ) ) );
 
+        $orientation = $_POST['ppm_orientation'] ?? 'landscape';
+        update_post_meta( $post_id, '_ppm_orientation',
+            in_array( $orientation, [ 'landscape', 'portrait' ], true ) ? $orientation : 'landscape' );
+
         $raw_items = $_POST['ppm_items'] ?? [];
         PPM_DB::save_items( $post_id, is_array( $raw_items ) ? $raw_items : [] );
+    }
+
+    public static function ajax_force_reload(): void {
+        check_ajax_referer( 'ppm_force_reload', 'nonce' );
+        $post_id = (int) ( $_POST['post_id'] ?? 0 );
+        if ( ! $post_id || ! current_user_can( 'edit_post', $post_id ) ) {
+            wp_send_json_error( 'Unauthorized', 403 );
+        }
+        update_post_meta( $post_id, '_ppm_force_reload', time() );
+        wp_send_json_success();
     }
 }

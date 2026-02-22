@@ -72,7 +72,8 @@ class PPM_DB {
             )
         );
         $meta = get_post_meta( $playlist_id, '_ppm_global_duration', true )
-              . get_post_meta( $playlist_id, '_ppm_global_frequency', true );
+              . get_post_meta( $playlist_id, '_ppm_global_frequency', true )
+              . get_post_meta( $playlist_id, '_ppm_force_reload', true );
         return md5( $meta . wp_json_encode( $rows ) );
     }
 }
