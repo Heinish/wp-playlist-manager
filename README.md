@@ -69,9 +69,27 @@ Click the **↻ Force Reload** button in the admin meta box. All screens running
 
 At the end of every full cycle the slideshow silently fetches a content hash from the REST API (`/wp-json/ppm/v1/playlist/{id}/hash`). If the hash has changed since the page loaded — because images were added, removed, reordered, or Force Reload was triggered — the page navigates to a fresh URL, bypassing all caches and loading the updated playlist.
 
+## Works great with CSS
+
+**[CSS — Cheap Signage Solutions](https://github.com/Heinish/css)** is a companion app for managing all your Raspberry Pi screens from a single Windows dashboard.
+
+Instead of SSH-ing into each Pi to point it at a playlist URL, CSS lets you:
+
+- Change what's displayed on any Pi in one click
+- Monitor CPU, memory, temperature, and uptime per Pi
+- Restart browsers or reboot Pis remotely
+- Organise screens into rooms
+- Schedule daily reboots and auto-updates
+
+**Typical workflow:**
+1. Create a playlist in WP Playlist Manager and publish it
+2. Copy the playlist URL (e.g. `your-site.com/playlist/lobby`)
+3. Open the CSS dashboard and push that URL to whichever Pi(s) should show it
+4. Update the playlist content in WordPress whenever you like — screens refresh automatically
+
 ---
 
-## License
+
 
 © 2026 Heinish. All rights reserved.
 
